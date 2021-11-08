@@ -32,30 +32,68 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getUser = getUser;
-const postUser = (req, res) => {
+const postUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { body } = req;
-    res.json({
-        msg: 'postUser',
-        body
-    });
-};
+    try {
+        const emailExists = yield user_1.default.findOne({
+            where: {
+                email: body.email
+            }
+        });
+        if (emailExists) {
+            return res.status(400).json({
+                msg: "Email already exists"
+            });
+        }
+        ;
+        const user = new user_1.default(body);
+        yield user.save();
+        res.json(user);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'postUser',
+            body
+        });
+    }
+    ;
+});
 exports.postUser = postUser;
-const putUser = (req, res) => {
+const putUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { body } = req;
-    res.json({
-        msg: 'putUser',
-        body,
-        id
-    });
-};
+    try {
+        const user = yield user_1.default.findByPk(id);
+        if (!user) {
+            return res.status(404).json({
+                msg: `There is no user with id ${id}`
+            });
+        }
+        yield user.update(body);
+        res.json(user);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'postUser',
+            body
+        });
+    }
+    ;
+});
 exports.putUser = putUser;
-const deleteUser = (req, res) => {
+const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    res.json({
-        msg: 'deleteUser',
-        id
-    });
-};
+    const user = yield user_1.default.findByPk(id);
+    if (!user) {
+        return res.status(404).json({
+            msg: `There is no user with id ${id}`
+        });
+    }
+    yield user.update({ state: false });
+    /* await user.destroy(); */
+    res.json(user);
+});
 exports.deleteUser = deleteUser;
 //# sourceMappingURL=users.js.map

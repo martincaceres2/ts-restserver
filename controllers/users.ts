@@ -23,35 +23,83 @@ export const getUser = async (req: Request, res: Response) => {
     }
 };
 
-export const postUser = (req: Request, res: Response) => {
+export const postUser = async (req: Request, res: Response) => {
 
     
     const { body } = req;
 
-    res.json({
-        msg: 'postUser',
-        body
-    });
+    try {
+        
+        const emailExists = await User.findOne({
+            where: {
+                email: body.email
+            }
+        });
+
+        if(emailExists) {
+            return res.status(400).json({
+                msg: "Email already exists"
+            })
+        };
+
+
+        const user = new User(body);
+        await user.save();
+
+        res.json(user);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'postUser',
+            body
+        });
+    };
 };
 
-export const putUser = (req: Request, res: Response) => {
+export const putUser = async (req: Request, res: Response) => {
 
     const { id } = req.params;
     const { body } = req;
 
-    res.json({
-        msg: 'putUser',
-        body,
-        id
-    });
+    try {
+        
+        const user = await User.findByPk(id);
+        if(!user) {
+            return res.status(404).json({
+                msg: `There is no user with id ${id}`
+            });
+        }
+
+        await user.update(body);
+
+        res.json(user);
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'postUser',
+            body
+        });
+    };
 };
 
-export const deleteUser = (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response) => {
 
     const { id } = req.params;
 
-    res.json({
-        msg: 'deleteUser',
-        id
-    });
+    const user = await User.findByPk(id);
+        if(!user) {
+            return res.status(404).json({
+                msg: `There is no user with id ${id}`
+            });
+        }
+
+        await user.update({state: false});
+
+        /* await user.destroy(); */
+
+
+    res.json(user);
 };
